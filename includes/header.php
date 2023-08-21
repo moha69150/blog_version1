@@ -1,9 +1,9 @@
 
 <header>
-  <a href="/blog_version1/" class="logo">Dyma Blog</a>
+  <a href="/dyma/Php/blog_version1/" class="logo">Espace Berthau'</a>
   <ul class="header-menu">
-  <li class=<?= $_SERVER['REQUEST_URI'] === '/blog_version1/add-article.php' ? 'active' : '' ?>>
-      <a href="add-article.php">Écrire un article</a>
+  <li class=<?= $_SERVER['REQUEST_URI'] === '/dyma/Php/blog_version1/form-article.php' ? 'active' : '' ?>>
+      <a href="form-article.php">Rédiger ma fiche d'activité</a>
     </li>
   </ul>
 </header>

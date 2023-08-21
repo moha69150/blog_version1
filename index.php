@@ -1,39 +1,94 @@
-<?php 
-$filename = __DIR__ . '/data/articles.json';
-$articles = [];
+<?php
+$articleDB= require_once __DIR__ . '/database/Articledb.php';
+$articles = $articleDB->fetchALL();
+$categories = [];
 
-if (file_exists($filename)) {
-  $articles = json_decode(file_get_contents($filename), true) ?? [];
+$_GET = filter_input_array(INPUT_GET, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+$selectedCat = $_GET['cat'] ?? '';
+
+if (count($articles)) {
+  $cattmp = array_map(fn ($a) => $a['category'],  $articles);
+  $categories = array_reduce($cattmp, function ($acc, $cat) {
+    if (isset($acc[$cat])) {
+      $acc[$cat]++;
+    } else {
+      $acc[$cat] = 1;
+    }
+    return $acc;
+  }, []);
+  $articlePerCategories = array_reduce($articles, function ($acc, $article) {
+    if (isset($acc[$article['category']])) {
+      $acc[$article['category']][] = $article;
+    } else {
+      $acc[$article['category']] = [$article];
+    }
+    return $acc;
+  }, []);
 }
-
 ?>
-
-
-
 
 <!DOCTYPE html>
 <html lang="fr">
-
-<head>
-  <?php require_once 'includes/head.php' ?>
+  <head>
   <link rel="stylesheet" href="public/index.css">
-</head>
+    <?php require_once 'includes/head.php' ?>
+   
+   
+  </head>
 
-<body>
-  <div class="container">
-    <?php require_once 'includes/header.php' ?>
-    <div class="content">
-      <div class="articles-container">
-        <?php foreach($articles as $a): ?>
-          <div class="article">
-            <div class="img-container" style="background-image:url(<?= $a['image'] ?>" ></div>
-            <h2> <?= $a['title'] ?></h2>
+  <body>
+    <div class="container">
+      <?php require_once 'includes/header.php' ?>
+      <div class="content">
+        <div class="newsfeed-container">
+          <div class="category-container">
+              <ul class="category-container">
+              <li class="<?= $selectedCat == '' ? 'cat-active' : '' ?>">
+
+                      <a href="/dyma/Php/blog_version1/">Tous les articles <span class="small">(<?= count($articles) ?>)</span></a>
+                  </li>
+                  <?php foreach ($categories as $catName => $catNum) : ?>
+                    <li class="<?= $selectedCat ===  $catName ? 'cat-active' : '' ?>">
+
+                      <a href="/dyma/Php/blog_version1/?cat=<?= $catName ?>"> <?= $catName ?><span class="small">(<?= $catNum ?>)</span> </a>
+
+                      </li>
+                  <?php endforeach; ?>
+              </ul>
+          </div>
+          <div class="newsfeed-content">
+            <?php if (!$selectedCat) : ?>
+              <?php foreach ($categories as $cat => $num) : ?>
+              <h2><?= $cat ?></h2>
+              <div class="articles-container">
+                <?php foreach ($articlePerCategories[$cat] as $a) : ?>
+                  <a href="show-article.php?id=<?= $a ['id'] ?>" class="article block">
+                    <div class="overflow">
+                      <div class="img-container" style="background-image:url(<?= $a['image'] ?>)"></div>
+                    </div>
+                    <h3><?= $a['title'] ?></h3>
+                </a>
+                <?php endforeach; ?>
+              </div>
+            <?php endforeach; ?>
+          <?php else : ?>
+            <h2><?= $selectedCat ?></h2>
+            <div class="articles-container">
+                <?php foreach ($articlePerCategories[$selectedCat] as $a) : ?>
+                  <a a href="show-article.php?id=<?= $a ['id'] ?>" class="article block">
+                    <div class="overflow">
+                      <div class="img-container" style="background-image:url(<?= $a['image'] ?>"></div>
+                    </div>
+                    <h3><?= $a['title'] ?></h3>
+                </a>
+                <?php endforeach; ?>
+              </div>
+            <?php endif; ?>
+          </div>
         </div>
-          <?php endforeach;?>
-      </div>    
+      </div>
+      <?php require_once 'includes/footer.php' ?>
     </div>
-    <?php require_once 'includes/footer.php' ?>
-  </div>
-</body>
 
+  </body>
 </html>
